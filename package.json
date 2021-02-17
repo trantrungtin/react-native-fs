@@ -1,7 +1,8 @@
 {
-  "name": "react-native-fs2",
+  "name": "@tinhardware/react-native-fs2",
   "version": "0.1.0",
   "description": "Native filesystem access for react-native",
+  "public": true,
   "main": "FS.common.js",
   "typings": "index.d.ts",
   "scripts": {
