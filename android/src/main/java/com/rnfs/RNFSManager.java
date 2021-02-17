@@ -215,8 +215,36 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     }
   }
 
+  class ReadFileTask extends AsyncTask {
+    private String mFilepath;
+    private Promise mPromise;
+    ReadFileTask(String filepath, Promise promise) {
+      mFilepath = filepath;
+      mPromise = promise;
+    }
+
+    @Override
+    protected Object doInBackground(Object[] objects) {
+      try {
+        InputStream inputStream = getInputStream(mFilepath);
+        byte[] inputData = getInputStreamBytes(inputStream);
+        String base64Content = Base64.encodeToString(inputData, Base64.NO_WRAP);
+
+        mPromise.resolve(base64Content);
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        reject(mPromise, mFilepath, ex);
+      }
+      return null;
+    }
+  }
+
+
   @ReactMethod
   public void readFile(String filepath, Promise promise) {
+    ReadFileTask actor = new ReadFileTask(filepath, promise);
+    actor.execute();
+    /*
     try {
       InputStream inputStream = getInputStream(filepath);
       byte[] inputData = getInputStreamBytes(inputStream);
@@ -227,10 +255,47 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       ex.printStackTrace();
       reject(promise, filepath, ex);
     }
+
+     */
+  }
+
+  class ReadTask extends AsyncTask {
+    private String mFilepath;
+    private int mLength;
+    private int mPosition;
+    private Promise mPromise;
+
+    ReadTask(String filepath, int length, int position, Promise promise) {
+      mFilepath = filepath;
+      mLength = length;
+      mPosition = position;
+      mPromise = promise;
+    }
+
+    @Override
+    protected Object doInBackground(Object[] objects) {
+      try {
+        InputStream inputStream = getInputStream(mFilepath);
+        byte[] buffer = new byte[mLength];
+        inputStream.skip(mPosition);
+        int bytesRead = inputStream.read(buffer, 0, mLength);
+
+        String base64Content = Base64.encodeToString(buffer, 0, bytesRead, Base64.NO_WRAP);
+
+        mPromise.resolve(base64Content);
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        reject(mPromise, mFilepath, ex);
+      }
+      return null;
+    }
   }
 
   @ReactMethod
   public void read(String filepath, int length, int position, Promise promise) {
+    ReadTask actor = new ReadTask(filepath, length, position, promise);
+    actor.execute();
+    /*
     try {
       InputStream inputStream = getInputStream(filepath);
       byte[] buffer = new byte[length];
@@ -244,6 +309,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       ex.printStackTrace();
       reject(promise, filepath, ex);
     }
+
+     */
   }
 
   @ReactMethod
